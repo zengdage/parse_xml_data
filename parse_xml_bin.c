@@ -4,20 +4,25 @@
 	> Mail: 
 	> Created Time: 2018年05月06日 星期日 23时44分03秒
  ************************************************************************/
+#include "parse_xml_bin.h"
 
+#ifndef EMBEDED_SYSTEM
 #include <stdio.h>
 #include <stdlib.h> 
 #include <string.h>
-#include "parse_xml_bin.h"
 
+#else
 
-property_table_item_t get_prop_item(const char * win_id, const char * property_name, void * bin_data);
-
-__s8 * load_bin(const char * path);
+#include <typedef.h>
+#include <log.h>
+#include <libc.h>
+#endif
 
 __s32 find_view(const char * win_id, void * bin_data, view_table_item_t view_item);
 
 __s32 check_magic(void * bin_data);
+__s8 * eLIBs_strtok(__s8 *str, const __s8 *delim);
+
 
 __s32 check_magic(void * bin_data)
 {
@@ -100,10 +105,13 @@ void * get_property_item(const char * name, void * bin_data, view_table_item_t v
 			memcpy(property_data, (orig_bin_data + property_item->data_pos),
 							property_item->data_size);
 
-			if(property_item->data_type == DATA_TYPE_STRING)
+			if(property_item->data_type == DATA_TYPE_STRING){
 				*(property_data + property_item->data_size) = 0;
+				printf("data = %s\n", property_data);
+			}
 
 			property_item->data = property_data;
+			printf("property_item->data = %s\n", property_item->data);
 
 			return property_item;
 		}
@@ -162,7 +170,7 @@ void * get_view_table_item(const char * win_id, void * bin_data)
 	return NULL;
 }
 
-void * parse_property_item(const char * win_id, const char * name, void * bin_data)
+property_table_item_t parse_property_item(const char * win_id, const char * name, void * bin_data)
 {
 	view_table_item_t view_item;
 	property_table_item_t property_item;
@@ -174,6 +182,7 @@ void * parse_property_item(const char * win_id, const char * name, void * bin_da
 	property_item = get_property_item(name, bin_data, view_item);
 	free(view_item);
 
+	printf("parse_property_item data=%s",property_item->data);
 	return property_item;
 }
 
@@ -217,7 +226,7 @@ void show_property_item(property_table_item_t item)
 
 	if(item->data_type == DATA_TYPE_STRING)
 	{
-		char * data = (char *)(item->data);
+		__s8 * data = (__s8 *)(item->data);
 		printf("property->data = %s\n", data);
 	}
 
@@ -230,28 +239,118 @@ void show_property_item(property_table_item_t item)
 	}
 }
 
-char * get_property_string_data(property_table_item_t item)
+__s8 * get_property_string_data(property_table_item_t item)
 {
 	if(item == NULL)
 		return NULL;
 	if(item->data_type == DATA_TYPE_STRING)
 	{
-		char * data = (char *)(item->data);
+		__s8 * data = (__s8 *)(item->data);
 		printf("property->data = %s\n", data);
 		return data;
 	}
 	return NULL;
 }
 
+__s32 get_property_int_data(property_table_item_t item)
+{
+	if(item == NULL)
+		return NULL;
+	if(item->data_type == DATA_TYPE_INT_4)
+	{
+		__s32 * data = (__s32 *)(item->data);
+		printf("property->data = %d\n", *data);
+		return *data;
+	}
+	return NULL;
+}
+
+
+
+__s32 get_bmp_array(property_table_item_t item, int array[], int num, int * err)
+{
+	__s32 i = 0;
+	if(item->data_type == DATA_TYPE_STRING)
+	{
+		__s8 * data = (__s8 *)(item->data);
+		printf("property->data = %s\n", data);
+		show_property_item(item);
+		char *p;
+		p = eLIBs_strtok(data, ",");
+		array[i] = atoi(p);
+		i++;
+    	while((p = eLIBs_strtok(NULL, ",")))
+    	{
+        	printf("%s ", p);
+			array[i] = atoi(p);
+			i++;
+			
+    	}
+        printf("\n");
+		*err = 0;
+		return *err;
+	}else{
+		printf("data type error");
+		*err = -1;
+		return NULL;
+	}
+}
+
+__s8 * eLIBs_strtok(__s8 *str, const __s8 *delim)
+{
+        static __s8 *src=NULL;                                      //记下上一次非分隔字符串字符的位置,详见图示
+        const __s8 *indelim=delim;                                  //对delim做一个备份
+        __s32 flag=1,index=0;                                
+
+    //每一次调用strtok,flag标记都会使得程序只记录下第一个非分隔符的位置,以后出现非分隔符不再处理
+
+        __s8 *temp=NULL;                                       //程序的返回值
+ 
+        if(str==NULL)
+        {
+          str=src;                                               //若str为NULL则表示该程序继续处理上一次余下的字符串
+        }
+        for(;*str;str++)
+        {
+            delim=indelim;
+			for(;*delim;delim++)
+            {
+				if(*str==*delim)
+                {
+                    *str=NULL;                    //若找到delim中感兴趣的字符,将该字符置为NULL
+                    index=1;                         //用来标记已出现感兴趣字符
+                    break;
+                }
+            }
+            if(*str!=NULL&&flag==1)
+            {
+                temp=str;                              //只记录下当前第一个非感兴趣字符的位置
+                flag=0;  
+            }
+            
+			if(*str!=NULL&&flag==0&&index==1)
+            {
+				src=str;                                   //第二次出现非感兴趣字符的位置(之前一定出现过感兴趣字符)
+                return temp;
+			}
+        }
+        src=str;                              
+
+     //执行该句表明一直未出现过感兴趣字符,或者说在出现了感兴趣的字符后,就没再出现过非感兴趣字符
+
+        return temp;
+}
+
+#ifndef EMBEDED_SYSTEM
 int main()
 {
     int ret = 0;
     __s8 * bin_data;
     printf("begin parse xml data\n");
 
-	char *test[]={ "win_id",   "unfocus_bmp",   "focus_bmp"};
+	char *test[]={ "win_id",   "unfocus_bmp",   "bmp_array"};
     
-    __s8 * bin_path = "view.data";
+    __s8 * bin_path = "view_data";
     bin_data = load_bin(bin_path);
     if(bin_data == 0)
     {
@@ -285,3 +384,4 @@ int main()
     printf("parse xml data end\n");
 	return 0;
 }
+#endif

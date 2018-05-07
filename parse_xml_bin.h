@@ -8,7 +8,7 @@
 #ifndef _PARSE_XML_BIN_H
 #define _PARSE_XML_BIN_H
 
-//#define EMED 
+//#define EMBEDED_SYSTEM
 
 #define MAGICLEN 8
 #define MAGIC "view666"
@@ -16,7 +16,8 @@
 #define VIEW_ID_LEN  16
 #define PROPERTY_NAME_LEN  32
 
-#ifndef EMED
+
+#ifndef EMBEDED_SYSTEM
 typedef int __s32;
 typedef unsigned int __u32;
 typedef char  __s8;
@@ -25,17 +26,24 @@ typedef unsigned char  __u8;
 
 #else
 
+#include <typedef.h>
+#include <syscall.h>
+#include <sys_mem.h>
+
 #define FILE ES_FILE
 
 #define printf eLIBs_printf
 #define malloc(x) esMEMS_Malloc(0,x)
-#define free(x)   esMEMS_Mfree(x)
+#define free(x)   esMEMS_Mfree(0,x)
 #define memcpy    eLIBs_memcpy
 #define strcmp    eLIBs_strcmp
 #define fopen     eLIBs_fopen
 #define fseek     eLIBs_fseek
 #define fread     eLIBs_fread
-#define fclose     eLIBs_fclose
+#define fclose    eLIBs_fclose
+#define ftell    eLIBs_ftell
+#define atoi     eLIBs_atoi
+
 #endif
 
 
@@ -85,6 +93,15 @@ struct property_table_item_nodata {
     __s32 data_type;
 };
 typedef struct property_table_item_nodata * property_table_item_nodata_t;
+
+
+void * get_property_item(const char * name, void * bin_data, view_table_item_t view_item);
+property_table_item_t parse_property_item(const char * win_id, const char * name, void * bin_data);
+__s8 * get_property_string_data(property_table_item_t item);
+__s8 * load_bin(const char * path);
+
+__s32 get_property_int_data(property_table_item_t item);
+__s32 get_bmp_array(property_table_item_t item, int array[] , int num, int * err);
 
 #endif
 
