@@ -8,16 +8,35 @@
 #ifndef _PARSE_XML_BIN_H
 #define _PARSE_XML_BIN_H
 
+//#define EMED 
+
 #define MAGICLEN 8
 #define MAGIC "view666"
 
 #define VIEW_ID_LEN  16
 #define PROPERTY_NAME_LEN  32
 
+#ifndef EMED
 typedef int __s32;
 typedef unsigned int __u32;
 typedef char  __s8;
 typedef unsigned char  __u8;
+
+
+#else
+
+#define FILE ES_FILE
+
+#define printf eLIBs_printf
+#define malloc(x) esMEMS_Malloc(0,x)
+#define free(x)   esMEMS_Mfree(x)
+#define memcpy    eLIBs_memcpy
+#define strcmp    eLIBs_strcmp
+#define fopen     eLIBs_fopen
+#define fseek     eLIBs_fseek
+#define fread     eLIBs_fread
+#define fclose     eLIBs_fclose
+#endif
 
 
 #define DATA_TYPE_INT_4   1

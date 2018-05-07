@@ -172,6 +172,7 @@ void * parse_property_item(const char * win_id, const char * name, void * bin_da
 		return NULL;
 	
 	property_item = get_property_item(name, bin_data, view_item);
+	free(view_item);
 
 	return property_item;
 }
@@ -196,6 +197,7 @@ __s8 * load_bin(const char * path)
     }
 
     fread(bin_data, size, 1, fp);
+	fclose(fp);
     return bin_data;
 }
 
@@ -203,7 +205,7 @@ void show_property_item(property_table_item_t item)
 {
 	if(item == NULL)
 	{
-		return NULL;
+		return;
 	}
 	printf("\n");
 	printf("show the property item information\n");
@@ -273,9 +275,12 @@ int main()
 			return -1;
 		}
 		show_property_item(property_item);	
+		free(property_item->data);
+		free(property_item);
     	printf("\n");
 	}
 	
+	free(bin_data);
     printf("\n");
     printf("parse xml data end\n");
 	return 0;
