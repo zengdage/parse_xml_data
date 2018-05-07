@@ -182,7 +182,6 @@ property_table_item_t parse_property_item(const char * win_id, const char * name
 	property_item = get_property_item(name, bin_data, view_item);
 	free(view_item);
 
-	printf("parse_property_item data=%s", (__s8 *)property_item->data);
 	return property_item;
 }
 
@@ -379,7 +378,7 @@ int main()
     __s8 * bin_data;
     printf("begin parse xml data\n");
 
-	char *test[]={ "win_id",   "unfocus_bmp",   "bmp_array"};
+	char *test[]={ "win_id",   "unfocus_bmp",   "bmp_array", "pos_num", "pos_array"};
     
     __s8 * bin_path = "view_data";
     bin_data = load_bin(bin_path);
@@ -399,15 +398,17 @@ int main()
 	for(i = 0; i < sizeof(test)/sizeof(test[0]); i++)
 	{
 		property_table_item_t property_item = parse_property_item("home_win", test[i], bin_data);
-		if(property_item == NULL)
+		if(property_item != NULL)
 		{
-			printf("parse error\n");
-			return -1;
+            show_property_item(property_item);	
+		    free(property_item->data);
+		    free(property_item);
+    	    printf("\n");
 		}
-		show_property_item(property_item);	
-		free(property_item->data);
-		free(property_item);
-    	printf("\n");
+		else
+        {
+            printf("can not find the property [%s]  from [%s]\n", test[i], "home_win");
+        }
 	}
 	
 	free(bin_data);
