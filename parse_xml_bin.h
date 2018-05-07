@@ -94,6 +94,11 @@ struct property_table_item_nodata {
 };
 typedef struct property_table_item_nodata * property_table_item_nodata_t;
 
+struct view {
+    
+}
+typedef struct view * view_t;
+
 
 void * get_property_item(const char * name, void * bin_data, view_table_item_t view_item);
 property_table_item_t parse_property_item(const char * win_id, const char * name, void * bin_data);
