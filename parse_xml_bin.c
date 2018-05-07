@@ -61,7 +61,8 @@ void * get_property_item(const char * name, void * bin_data, view_table_item_t v
 	__s32 i = 0;
 	void * orig_bin_data = bin_data;
 	
-
+	if(view_item == NULL)
+		return NULL;
 	__s32 property_num = view_item->property_num;
 	__s32 property_size = view_item->property_size;
 	__s32 property_pos = view_item->property_pos;
@@ -119,6 +120,8 @@ __s32 find_view(const char * win_id, void * bin_data, view_table_item_t view_ite
 	__s32 view_table_pos = 0;
 	__s32 i = 0;
 
+	if(view_item == NULL)
+		return -1;
 	data_file_header_t header = (data_file_header_t) bin_data;
 	view_num = header->view_num;
 	view_table_pos = header->xml_view_table_pos;
@@ -198,6 +201,10 @@ __s8 * load_bin(const char * path)
 
 void show_property_item(property_table_item_t item)
 {
+	if(item == NULL)
+	{
+		return NULL;
+	}
 	printf("\n");
 	printf("show the property item information\n");
 	printf("property->name = %s\n", item->name);
@@ -221,6 +228,18 @@ void show_property_item(property_table_item_t item)
 	}
 }
 
+char * get_property_string_data(property_table_item_t item)
+{
+	if(item == NULL)
+		return NULL;
+	if(item->data_type == DATA_TYPE_STRING)
+	{
+		char * data = (char *)(item->data);
+		printf("property->data = %s\n", data);
+		return data;
+	}
+	return NULL;
+}
 
 int main()
 {
@@ -228,7 +247,7 @@ int main()
     __s8 * bin_data;
     printf("begin parse xml data\n");
 
-	char *test[]={ "win_id",   "win_left",   "focus_bmp"};
+	char *test[]={ "win_id",   "unfocus_bmp",   "focus_bmp"};
     
     __s8 * bin_path = "view.data";
     bin_data = load_bin(bin_path);
@@ -247,7 +266,7 @@ int main()
 	int i = 0;
 	for(i = 0; i < sizeof(test)/sizeof(test[0]); i++)
 	{
-		property_table_item_t property_item = parse_property_item("button1", test[i], bin_data);
+		property_table_item_t property_item = parse_property_item("home_win", test[i], bin_data);
 		if(property_item == NULL)
 		{
 			printf("parse error\n");
@@ -257,8 +276,6 @@ int main()
     	printf("\n");
 	}
 	
-
-
     printf("\n");
     printf("parse xml data end\n");
 	return 0;
