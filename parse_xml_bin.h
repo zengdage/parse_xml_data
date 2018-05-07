@@ -103,5 +103,6 @@ __s8 * load_bin(const char * path);
 __s32 get_property_int_data(property_table_item_t item);
 __s32 get_bmp_array(property_table_item_t item, int array[] , int num, int * err);
 
+__s32 get_pos_array(property_table_item_t item, int array[][2] , int num, int * err);
 #endif
 
