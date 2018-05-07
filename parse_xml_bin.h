@@ -19,6 +19,16 @@ typedef unsigned int __u32;
 typedef char  __s8;
 typedef unsigned char  __u8;
 
+
+#define DATA_TYPE_INT_4   1
+#define DATA_TYPE_FLOAT_4 2
+#define DATA_TYPE_LONG_8  3
+#define DATA_TYPE_CHAR_1  4
+#define DATA_TYPE_SHORT_2 5
+#define DATA_TYPE_DOUBLE_4 6
+#define DATA_TYPE_STRING   7
+
+
 struct data_file_header {
     __s8  magic [MAGICLEN];
     __s32 xml_num;
@@ -29,7 +39,7 @@ struct data_file_header {
 typedef struct data_file_header * data_file_header_t;
 
 struct view_table_item {
-    __s32 view_id [VIEW_ID_LEN];
+    __s8 view_id [VIEW_ID_LEN];
     __s32 type;
     __s32 direct_subchild_item_num;
     __s32 all_subchild_item_num;
@@ -48,6 +58,14 @@ struct property_table_item {
     void * data;
 };
 typedef struct property_table_item * property_table_item_t;
+
+struct property_table_item_nodata {
+    __s8 name [PROPERTY_NAME_LEN];
+    __s32 data_size;
+    __s32 data_pos;
+    __s32 data_type;
+};
+typedef struct property_table_item_nodata * property_table_item_nodata_t;
 
 #endif
 
