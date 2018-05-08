@@ -290,6 +290,7 @@ void * get_view_table_item(const char * win_id, void * bin_data)
 		return NULL;
 	}
 
+	memset(item, 0, sizeof(struct view_table_item));
 	ret = find_view(win_id, bin_data, item);
 	if(ret == 0)
 		return item;
@@ -331,6 +332,7 @@ __s8 * load_bin(const char * path)
         return 0;
     }
 
+	memset(bin_data, 0, size);
     fread(bin_data, size, 1, fp);
 	fclose(fp);
     return bin_data;

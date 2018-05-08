@@ -37,6 +37,7 @@ typedef unsigned char  __u8;
 #define malloc(x) esMEMS_Malloc(0,x)
 #define free(x)   esMEMS_Mfree(0,x)
 #define memcpy    eLIBs_memcpy
+#define memset    eLIBs_memset
 #define strcmp    eLIBs_strcmp
 #define fopen     eLIBs_fopen
 #define fseek     eLIBs_fseek
