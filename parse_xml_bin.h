@@ -140,7 +140,7 @@ typedef struct xml_item * xml_item_t;
 
 
 void * get_property_item(const char * name, void * bin_data, view_table_item_t view_item);
-property_table_item_t parse_property_item(const char * win_id, const char * name, void * bin_data);
+property_table_item_t parse_property_item(const char * xml_name, const char * win_id, const char * name, void * bin_data);
 __s8 * get_property_string_data(property_table_item_t item);
 __s8 * load_bin(const char * path);
 

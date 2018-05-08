@@ -18,7 +18,7 @@
 #include <libc.h>
 #endif
 
-__s32 find_view(const char * win_id, void * bin_data, view_table_item_t view_item);
+__s32 find_view(const char * xml_view, const char * win_id, void * bin_data, view_table_item_t view_item);
 __s32 check_magic(void * bin_data);
 __s8 * eLIBs_strtok(__s8 *str, const __s8 *delim);
 
@@ -52,7 +52,7 @@ __s32 get_view_num(void * bin_data)
 	return header->view_num;
 }
 
-__s32 get_view_table_pos(void * bin_data)
+__s32 get_xml_table_pos(void * bin_data)
 {
 	data_file_header_t header = (data_file_header_t) bin_data;
 	return header->xml_view_table_pos;
@@ -163,23 +163,48 @@ void show_view_tree(view_t view)
 }
 
 
-__s32 get_view_tree(void * bin_data, __s32 view_pos, __s32 num)
+__s32 get_view_tree(const char * xml_name, void * bin_data, view_t views)
 {
-	struct view views [num];
 	__s32 i = 0;
 	__s32 view_table_i = 0;
-	bin_data += view_pos;
-	for(i = 0; i < num; i++)
+	__s32 xml_num = 0;
+	__s32 xml_table_pos = 0;
+	__s32 view_pos = 0;
+	__s32 view_num = 0;
+	void * orig_data = bin_data;
+	
+	data_file_header_t header = (data_file_header_t) bin_data;
+	xml_num = header->xml_num;
+	xml_table_pos = header->xml_view_table_pos;
+	
+	bin_data += xml_table_pos;
+
+
+	xml_item_t item = NULL;
+	for(i = 0; i < xml_num; i++)
 	{
-		memset(&views[i], 0, sizeof(struct view));
-		create_view_tree(&views[i], bin_data, &view_table_i);
+		item = (xml_item_t)bin_data;
+		if(!strcmp(item->name, xml_name))
+		{
+			printf("find the xml file [%s]\n", item->name);
+			break;
+		}
+		bin_data += sizeof(struct xml_item);
 	}
 
-	for(i = 0; i < num; i++)
-	{
-		show_view_tree(&views[i]);
-	}
-	
+	if(item == NULL)
+		return -1;
+
+	bin_data = orig_data;
+	view_pos = item->view_item_pos;
+	view_num = item->view_num;
+
+	bin_data += view_pos;
+		
+	memset(&views[i], 0, sizeof(struct view));
+	create_view_tree(views, bin_data, &view_table_i);
+
+	show_view_tree(views);
 
 	return 0;
 
@@ -238,7 +263,7 @@ void * get_property_item(const char * name, void * bin_data, view_table_item_t v
 			}
 
 			property_item->data = property_data;
-			printf("property_item->data = %s\n", (__s8 *)property_item->data);
+			//printf("property_item->data = %s\n", (__s8 *)property_item->data);
 
 			return property_item;
 		}
@@ -249,19 +274,40 @@ void * get_property_item(const char * name, void * bin_data, view_table_item_t v
 }
 
 
-__s32 find_view(const char * win_id, void * bin_data, view_table_item_t view_item)
+__s32 find_view(const char * xml_name, const char * win_id, void * bin_data, view_table_item_t view_item)
 {
+	__s32 xml_num = 0;
 	__s32 view_num = 0;
+	__s32 xml_table_pos = 0;
 	__s32 view_table_pos = 0;
+	void * orig_data = bin_data;
 	__s32 i = 0;
 
 	if(view_item == NULL)
 		return -1;
 	data_file_header_t header = (data_file_header_t) bin_data;
-	view_num = header->view_num;
-	view_table_pos = header->xml_view_table_pos;
+	xml_num = header->xml_num;
+	xml_table_pos = header->xml_view_table_pos;
+	
+	bin_data += xml_table_pos;
+	xml_item_t item = NULL;
+	for(i = 0; i < xml_num; i++)
+	{
+		item = (xml_item_t)bin_data;
+		if(!strcmp(item->name, xml_name))
+		{
+			printf("find the xml file [%s]\n", item->name);
+			break;
+		}
+		bin_data += sizeof(struct xml_item);
+	}
 
+	if(item == NULL)
+		return -1;
 
+	bin_data = orig_data;
+	view_table_pos = item->view_item_pos;
+	view_num = item->view_num;
 	bin_data += view_table_pos;
 	for(i = 0; i < view_num; i++)
 	{
@@ -278,7 +324,7 @@ __s32 find_view(const char * win_id, void * bin_data, view_table_item_t view_ite
 	return -1;	
 }
 
-void * get_view_table_item(const char * win_id, void * bin_data)
+void * get_view_table_item(const char * xml_name, const char * win_id, void * bin_data)
 {
 	view_table_item_t item;
 	__s32 ret = 0;
@@ -291,19 +337,19 @@ void * get_view_table_item(const char * win_id, void * bin_data)
 	}
 
 	memset(item, 0, sizeof(struct view_table_item));
-	ret = find_view(win_id, bin_data, item);
+	ret = find_view(xml_name, win_id, bin_data, item);
 	if(ret == 0)
 		return item;
 
 	return NULL;
 }
 
-property_table_item_t parse_property_item(const char * win_id, const char * name, void * bin_data)
+property_table_item_t parse_property_item(const char * xml_name, const char * win_id, const char * name, void * bin_data)
 {
 	view_table_item_t view_item;
 	property_table_item_t property_item;
 
-	view_item = get_view_table_item(win_id, bin_data);
+	view_item = get_view_table_item(xml_name, win_id, bin_data);
 	if(view_item == NULL)
 		return NULL;
 	
@@ -505,7 +551,7 @@ int main()
 {
     __s32 ret = 0;
     __s8 * bin_data;
-	__s32 view_table_pos = 0;
+	__s32 xml_table_pos = 0;
 	__s32 xml_num = 0;
 
 	__s32 i = 0;
@@ -530,7 +576,7 @@ int main()
 
 	for(i = 0; i < sizeof(test)/sizeof(test[0]); i++)
 	{
-		property_table_item_t property_item = parse_property_item("home_win", test[i], bin_data);
+		property_table_item_t property_item = parse_property_item("home.xml","home_win", test[i], bin_data);
 		if(property_item != NULL)
 		{
             show_property_item(property_item);	
@@ -545,8 +591,10 @@ int main()
 	}
 
 	xml_num = get_xml_num(bin_data);
-	view_table_pos = get_view_table_pos(bin_data);
-	get_view_tree(bin_data, view_table_pos, xml_num);
+	xml_table_pos = get_xml_table_pos(bin_data);
+
+	struct view v;
+	get_view_tree("home.xml", bin_data, &v);
 	
 	free(bin_data);
     printf("\n");
