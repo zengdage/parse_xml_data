@@ -15,6 +15,7 @@
 
 #define VIEW_ID_LEN  16
 #define PROPERTY_NAME_LEN  32
+#define XML_NAME_LEN  16
 
 
 #ifndef EMBEDED_SYSTEM
@@ -55,6 +56,27 @@ typedef unsigned char  __u8;
 #define DATA_TYPE_DOUBLE_4 6
 #define DATA_TYPE_STRING   7
 
+#define TypeBasewin = 1;
+#define TypeButton = 2;
+#define TypeCtrwin = 3;
+#define TypeFrmwin = 4;
+#define TypeGmsgBox = 5;
+#define TypeIconMenu = 6;
+#define TypeListMenu = 7;
+#define TypeMainwin = 8;
+	  
+#define TypeMsgBox = 9;
+#define TypeProgBar = 10;
+#define TypeProgSheet = 11;
+#define TypeSIcons = 12;
+#define TypeSLider = 13;
+#define TypeSListBox = 14;
+#define TypeSpinBox = 15;
+	  
+#define TypeStatic = 16;
+#define TypeTxtBox = 17;
+#define TypeWin = 18;
+
 
 struct data_file_header {
     __s8  magic [MAGICLEN];
@@ -86,6 +108,7 @@ struct property_table_item {
 };
 typedef struct property_table_item * property_table_item_t;
 
+
 struct property_table_item_nodata {
     __s8 name [PROPERTY_NAME_LEN];
     __s32 data_size;
@@ -94,10 +117,25 @@ struct property_table_item_nodata {
 };
 typedef struct property_table_item_nodata * property_table_item_nodata_t;
 
+
 struct view {
-    
-}
+	__s8   id[VIEW_ID_LEN];
+	__s32  view_type;
+	struct view * parent_view;
+	struct view * child_views;    
+	struct view * brother_views;    
+	void * data;
+};
 typedef struct view * view_t;
+
+
+struct xml_item {
+	__s8 name [XML_NAME_LEN];
+	__s32 view_num;
+	__s32 view_item_pos;
+};
+typedef struct xml_item * xml_item_t;
+
 
 
 void * get_property_item(const char * name, void * bin_data, view_table_item_t view_item);

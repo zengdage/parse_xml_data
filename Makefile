@@ -1,4 +1,4 @@
-CC = gcc
+CC = gcc -g
 all:
 	$(CC) -o parse_xml_bin parse_xml_bin.c
 

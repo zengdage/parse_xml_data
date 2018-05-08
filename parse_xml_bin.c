@@ -19,7 +19,6 @@
 #endif
 
 __s32 find_view(const char * win_id, void * bin_data, view_table_item_t view_item);
-
 __s32 check_magic(void * bin_data);
 __s8 * eLIBs_strtok(__s8 *str, const __s8 *delim);
 
@@ -59,6 +58,134 @@ __s32 get_view_table_pos(void * bin_data)
 	return header->xml_view_table_pos;
 }
 
+
+void create_view_tree(view_t view, void * bin_data, int * num)
+{	
+	view_table_item_t item = (view_table_item_t)(bin_data + sizeof(struct view_table_item) * (*num));
+	__s32 i = 0;
+	__s32 subchild_num = item->direct_subchild_item_num;
+
+	view->view_type = item->type;
+	memcpy(view->id, item->view_id, VIEW_ID_LEN);
+
+	view_t sub_view_first = NULL;
+	view_t sub_view_save = NULL;
+
+	for(i = 0; i < subchild_num; i++)
+	{	
+		sub_view_first = (view_t)malloc(sizeof(struct view));
+		if(sub_view_first == NULL)
+		{
+			printf("alloc memory for sub view failed!\n");
+			return;
+		}
+		memset(sub_view_first, 0, sizeof(struct view));
+		
+		if(i == 0)
+		{
+			view->child_views = sub_view_first;
+		}
+		else
+		{
+			view_t temp = view;
+			if(temp->child_views == NULL)
+			{
+				temp->child_views = sub_view_first;
+			}
+			else
+			{
+				temp = view->child_views;
+				for(; temp->brother_views != NULL; )
+				{
+					temp = temp->brother_views;
+				}
+				temp->brother_views = sub_view_first;
+			}
+		}
+
+
+		sub_view_first->parent_view = view;
+		sub_view_save = sub_view_first;
+		*num = (*num) + 1;
+		create_view_tree(sub_view_first, bin_data, num);
+
+	}
+	if(view->child_views != NULL)
+		printf("child: %s\n", view->child_views->id);
+}
+
+void show_view_tree(view_t view)
+{
+	printf("\n");
+	if(view->parent_view != NULL)
+		printf("the view [%s] parent_view is [%s]\n", view->id, view->parent_view->id);
+	
+	if(view->view_type != NULL)
+		printf("the view [%s] view_type is [%d]\n", view->id, view->view_type);
+	
+	if(view->brother_views != NULL)
+	{
+		printf("the view [%s] brother_view is [%s]->", view->id, view->brother_views->id);
+		view_t temp = view->brother_views;
+		for(; temp->brother_views != NULL; )
+		{
+			temp = temp->brother_views;
+			printf("[%s]->", temp->id);
+		}
+		printf("\n");
+	}
+
+	if(view->child_views != NULL)
+	{
+		printf("the view [%s] child_view is [%s,%d]->", view->id, view->child_views->id, view->child_views->view_type);
+		view_t temp = view->child_views;
+		for(; temp->brother_views != NULL; )
+		{
+			temp = temp->brother_views;
+			printf("[%s,%d]->", temp->id, temp->view_type);
+		}
+		printf("\n");
+		
+		temp = view->child_views;
+		for(; temp != NULL; )
+		{
+			show_view_tree(temp);
+			temp = temp->brother_views;
+			if(temp == NULL)
+				break;
+		}
+		printf("\n");
+
+	}
+	printf("\n");
+
+
+}
+
+
+__s32 get_view_tree(void * bin_data, __s32 view_pos, __s32 num)
+{
+	struct view views [num];
+	__s32 i = 0;
+	__s32 view_table_i = 0;
+	bin_data += view_pos;
+	for(i = 0; i < num; i++)
+	{
+		memset(&views[i], 0, sizeof(struct view));
+		create_view_tree(&views[i], bin_data, &view_table_i);
+	}
+
+	for(i = 0; i < num; i++)
+	{
+		show_view_tree(&views[i]);
+	}
+	
+
+	return 0;
+
+}
+	
+	
 
 void * get_property_item(const char * name, void * bin_data, view_table_item_t view_item)
 {
@@ -374,11 +501,16 @@ __s8 * eLIBs_strtok(__s8 *str, const __s8 *delim)
 #ifndef EMBEDED_SYSTEM
 int main()
 {
-    int ret = 0;
+    __s32 ret = 0;
     __s8 * bin_data;
-    printf("begin parse xml data\n");
+	__s32 view_table_pos = 0;
+	__s32 xml_num = 0;
 
-	char *test[]={ "win_id",   "unfocus_bmp",   "bmp_array", "pos_num", "pos_array"};
+	__s32 i = 0;
+    
+	printf("begin parse xml data\n");
+
+	__s8 *test[]={ "win_id",   "unfocus_bmp",   "bmp_array", "pos_num", "pos_array"};
     
     __s8 * bin_path = "view_data";
     bin_data = load_bin(bin_path);
@@ -394,7 +526,6 @@ int main()
 		return -1;
 	}
 
-	int i = 0;
 	for(i = 0; i < sizeof(test)/sizeof(test[0]); i++)
 	{
 		property_table_item_t property_item = parse_property_item("home_win", test[i], bin_data);
@@ -410,6 +541,10 @@ int main()
             printf("can not find the property [%s]  from [%s]\n", test[i], "home_win");
         }
 	}
+
+	xml_num = get_xml_num(bin_data);
+	view_table_pos = get_view_table_pos(bin_data);
+	get_view_tree(bin_data, view_table_pos, xml_num);
 	
 	free(bin_data);
     printf("\n");
