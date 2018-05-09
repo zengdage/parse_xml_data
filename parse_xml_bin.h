@@ -57,26 +57,26 @@ typedef unsigned char  __u8;
 #define DATA_TYPE_DOUBLE_4 6
 #define DATA_TYPE_STRING   7
 
-#define TypeBasewin = 1;
-#define TypeButton = 2;
-#define TypeCtrwin = 3;
-#define TypeFrmwin = 4;
-#define TypeGmsgBox = 5;
-#define TypeIconMenu = 6;
-#define TypeListMenu = 7;
-#define TypeMainwin = 8;
+#define TypeBasewin   1
+#define TypeButton    2
+#define TypeCtrwin    3
+#define TypeFrmwin    4
+#define TypeGmsgBox   5
+#define TypeIconMenu  6
+#define TypeListMenu  7
+#define TypeMainwin   8
 	  
-#define TypeMsgBox = 9;
-#define TypeProgBar = 10;
-#define TypeProgSheet = 11;
-#define TypeSIcons = 12;
-#define TypeSLider = 13;
-#define TypeSListBox = 14;
-#define TypeSpinBox = 15;
+#define TypeMsgBox    9
+#define TypeProgBar   10
+#define TypeProgSheet 11
+#define TypeSIcons    12
+#define TypeSLider    13
+#define TypeSListBox  14
+#define TypeSpinBox   15
 	  
-#define TypeStatic = 16;
-#define TypeTxtBox = 17;
-#define TypeWin = 18;
+#define TypeStatic    16
+#define TypeTxtBox    17
+#define TypeWin       18
 
 
 struct data_file_header {
@@ -125,6 +125,7 @@ struct view {
 	struct view * parent_view;
 	struct view * child_views;    
 	struct view * brother_views;    
+	__s32  status;
 	void * data;
 };
 typedef struct view * view_t;
@@ -137,7 +138,14 @@ struct xml_item {
 };
 typedef struct xml_item * xml_item_t;
 
+struct create_win
+{
+	__s32 win_type;
+	void (*create_win_function)(view_t view_tree, 
+			view_table_item_t item);
+};
 
+view_t search_view_tree(view_t view_tree, const char * name);
 
 void * get_property_item(const char * name, void * bin_data, view_table_item_t view_item);
 property_table_item_t parse_property_item(const char * xml_name, const char * win_id, const char * name, void * bin_data);

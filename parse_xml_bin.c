@@ -52,11 +52,153 @@ __s32 get_view_num(void * bin_data)
 	return header->view_num;
 }
 
+view_t search_view_tree(view_t view_tree, const char * name)
+{
+	view_t temp = NULL;
+        if(!strcmp(view_tree->id, name))
+	{
+		return view_tree;
+	}
+	else
+	{
+		if(view_tree->child_views != NULL)
+	        {
+		        temp = search_view_tree(view_tree->child_views, name);
+		}
+
+		if(temp != NULL)
+			return temp;
+
+		view_t temp_brother = view_tree->brother_views;
+		for(; temp_brother != NULL; )
+		{
+			temp = search_view_tree(temp_brother, name);
+			if(temp != NULL)
+				return temp;
+			temp_brother = temp->brother_views;
+		}
+	}
+	return temp;
+}
+
 __s32 get_xml_table_pos(void * bin_data)
 {
 	data_file_header_t header = (data_file_header_t) bin_data;
 	return header->xml_view_table_pos;
 }
+
+void create_win_func_basewin(view_t view, view_table_item_t item)
+{
+
+}
+
+void create_win_func_button(view_t view, view_table_item_t item)
+{
+
+}
+void create_win_func_ctrwin(view_t view, view_table_item_t item)
+{
+
+}
+void create_win_func_frmwin(view_t view, view_table_item_t item)
+{
+
+}
+void create_win_func_gmsgbox(view_t view, view_table_item_t item)
+{
+
+}
+void create_win_func_iconmenu(view_t view, view_table_item_t item)
+{
+
+}
+void create_win_func_listmenu(view_t view, view_table_item_t item)
+{
+
+}
+void create_win_func_mainwin(view_t view, view_table_item_t item)
+{
+       printf("win create %s\n", __FUNCTION__);
+}
+void create_win_func_msgbox(view_t view, view_table_item_t item)
+{
+
+}
+void create_win_func_progbar(view_t view, view_table_item_t item)
+{
+
+}
+void create_win_func_progsheet(view_t view, view_table_item_t item)
+{
+
+}
+void create_win_func_sicons(view_t view, view_table_item_t item)
+{
+
+}
+void create_win_func_slider(view_t view, view_table_item_t item)
+{
+
+}
+void create_win_func_slistbox(view_t view, view_table_item_t item)
+{
+
+}
+void create_win_func_spinbox(view_t view, view_table_item_t item)
+{
+
+}
+void create_win_func_static(view_t view, view_table_item_t item)
+{
+
+}
+void create_win_func_txtbox(view_t view, view_table_item_t item)
+{
+
+}
+void create_win_func_win(view_t view, view_table_item_t item)
+{
+
+}
+
+
+
+struct create_win create_win_array[] = {
+	{TypeBasewin, create_win_func_basewin},
+	{TypeButton, create_win_func_button},
+	{TypeCtrwin, create_win_func_ctrwin},
+	{TypeFrmwin, create_win_func_frmwin},
+	{TypeGmsgBox, create_win_func_gmsgbox},
+	{TypeIconMenu, create_win_func_iconmenu},
+	{TypeListMenu, create_win_func_listmenu},
+	{TypeMainwin, create_win_func_mainwin},
+	{TypeMsgBox, create_win_func_msgbox},
+	{TypeProgBar, create_win_func_progbar},
+	{TypeProgSheet, create_win_func_progsheet},
+	{TypeSIcons, create_win_func_sicons},
+	{TypeSLider, create_win_func_slider},
+	{TypeSListBox, create_win_func_slistbox},
+	{TypeSpinBox, create_win_func_spinbox},
+	{TypeStatic, create_win_func_static},
+	{TypeTxtBox, create_win_func_txtbox},
+	{TypeWin,create_win_func_win},
+};
+
+__s32 create_win(view_t view, view_table_item_t item)
+{
+	__s32 type = 0;
+	__s32 i = 0;
+	type = item->type;
+	for(i = 0; i < sizeof(create_win_array)/sizeof(create_win_array[0]); i++)
+	{
+		if(type == create_win_array[i].win_type){
+		        printf("type = %d, win_type = %d", type, create_win_array[i].win_type);
+			create_win_array[i].create_win_function(view, item);
+			break;
+		}
+	}
+}
+
 
 
 void create_view_tree(view_t view, void * bin_data, int * num)
@@ -68,6 +210,7 @@ void create_view_tree(view_t view, void * bin_data, int * num)
 	view->view_type = item->type;
 	memcpy(view->id, item->view_id, VIEW_ID_LEN);
 
+	create_win(view, item);
 	view_t sub_view_first = NULL;
 	view_t sub_view_save = NULL;
 
@@ -597,8 +740,15 @@ int main()
 	get_view_tree("home.xml", bin_data, &v);
 	
 	free(bin_data);
-    printf("\n");
-    printf("parse xml data end\n");
+
+	view_t temp = search_view_tree(&v, "main1");
+	if(temp == NULL)
+		printf("search homw_win failded!\n");
+	else
+		printf("search the view [%s] success!\n", temp->id);
+
+        printf("\n");
+        printf("parse xml data end\n");
 	return 0;
 }
 #endif
