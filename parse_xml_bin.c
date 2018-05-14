@@ -87,6 +87,21 @@ __s32 get_xml_table_pos(void * bin_data)
 	return header->xml_view_table_pos;
 }
 
+__s32 get_root_para(void * bin_data, root_para_t para)
+{
+    __s32 ret = 0;
+    
+    property_table_item_t item;
+    //TODO
+    item = parse_property_item("root_para.xml", "root_para", "xxx", bin_data);
+    if(item == NULL)
+        return -1;
+
+
+    return ret; 
+
+}
+
 void create_win_func_basewin(view_t view, view_table_item_t item)
 {
 
@@ -192,7 +207,7 @@ __s32 create_win(view_t view, view_table_item_t item)
 	for(i = 0; i < sizeof(create_win_array)/sizeof(create_win_array[0]); i++)
 	{
 		if(type == create_win_array[i].win_type){
-		        printf("type = %d, win_type = %d", type, create_win_array[i].win_type);
+		    printf("type = %d, win_type = %d", type, create_win_array[i].win_type);
 			create_win_array[i].create_win_function(view, item);
 			break;
 		}

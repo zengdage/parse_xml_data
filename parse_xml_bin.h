@@ -138,6 +138,13 @@ struct xml_item {
 };
 typedef struct xml_item * xml_item_t;
 
+#ifndef EMBEDED_SYSTEM
+struct root_para {
+
+};
+typedef struct root_para * root_para_t;
+#endif
+
 struct create_win
 {
 	__s32 win_type;
@@ -145,6 +152,7 @@ struct create_win
 			view_table_item_t item);
 };
 
+__s32 get_root_para(void * bin_data, root_para_t para);
 view_t search_view_tree(view_t view_tree, const char * name);
 
 void * get_property_item(const char * name, void * bin_data, view_table_item_t view_item);
