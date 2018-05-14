@@ -127,6 +127,7 @@ struct view {
 	struct view * brother_views;    
 	__s32  status;
 	void * data;
+    __s32 (* precreate_hook)(void *data1, void * data2);
 };
 typedef struct view * view_t;
 
@@ -160,7 +161,7 @@ property_table_item_t parse_property_item(const char * xml_name, const char * wi
 __s8 * get_property_string_data(property_table_item_t item);
 __s8 * load_bin(const char * path);
 
-__s32 get_property_int_data(property_table_item_t item);
+__s32 get_property_int_data(property_table_item_t item, __s32 * err);
 __s32 get_bmp_array(property_table_item_t item, int array[] , int num, int * err);
 
 __s32 get_pos_array(property_table_item_t item, int array[][2] , int num, int * err);

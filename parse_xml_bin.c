@@ -102,77 +102,102 @@ __s32 get_root_para(void * bin_data, root_para_t para)
 
 }
 
+
+__s32 pre_create_win_hook(view_t view, view_table_item_t item)
+{
+    __s32 ret = 0;
+    if(view->precreate_hook != NULL)
+        return view->precreate_hook(view, item);
+    return ret;
+}
+
 void create_win_func_basewin(view_t view, view_table_item_t item)
 {
-
+    pre_create_win_hook(view, item);
 }
 
 void create_win_func_button(view_t view, view_table_item_t item)
 {
-
+    pre_create_win_hook(view, item);
 }
 void create_win_func_ctrwin(view_t view, view_table_item_t item)
 {
+    pre_create_win_hook(view, item);
 
 }
 void create_win_func_frmwin(view_t view, view_table_item_t item)
 {
+    pre_create_win_hook(view, item);
 
 }
 void create_win_func_gmsgbox(view_t view, view_table_item_t item)
 {
+    pre_create_win_hook(view, item);
 
 }
 void create_win_func_iconmenu(view_t view, view_table_item_t item)
 {
+    pre_create_win_hook(view, item);
 
 }
 void create_win_func_listmenu(view_t view, view_table_item_t item)
 {
+    pre_create_win_hook(view, item);
 
 }
 void create_win_func_mainwin(view_t view, view_table_item_t item)
 {
-       printf("win create %s\n", __FUNCTION__);
+    pre_create_win_hook(view, item);
+    printf("win create %s\n", __FUNCTION__);
 }
 void create_win_func_msgbox(view_t view, view_table_item_t item)
 {
+    pre_create_win_hook(view, item);
 
 }
 void create_win_func_progbar(view_t view, view_table_item_t item)
 {
+    pre_create_win_hook(view, item);
 
 }
 void create_win_func_progsheet(view_t view, view_table_item_t item)
 {
+    pre_create_win_hook(view, item);
 
 }
 void create_win_func_sicons(view_t view, view_table_item_t item)
 {
+    pre_create_win_hook(view, item);
 
 }
 void create_win_func_slider(view_t view, view_table_item_t item)
 {
+    pre_create_win_hook(view, item);
 
 }
 void create_win_func_slistbox(view_t view, view_table_item_t item)
 {
+    pre_create_win_hook(view, item);
 
 }
 void create_win_func_spinbox(view_t view, view_table_item_t item)
 {
+    pre_create_win_hook(view, item);
 
 }
 void create_win_func_static(view_t view, view_table_item_t item)
 {
+    pre_create_win_hook(view, item);
 
 }
 void create_win_func_txtbox(view_t view, view_table_item_t item)
 {
+    pre_create_win_hook(view, item);
 
 }
 void create_win_func_win(view_t view, view_table_item_t item)
 {
+    pre_create_win_hook(view, item);
 
 }
 
@@ -278,7 +303,7 @@ void show_view_tree(view_t view)
 	if(view->parent_view != NULL)
 		printf("the view [%s] parent_view is [%s]\n", view->id, view->parent_view->id);
 	
-	if(view->view_type != NULL)
+	if(view->view_type != 0)
 		printf("the view [%s] view_type is [%d]\n", view->id, view->view_type);
 	
 	if(view->brother_views != NULL)
@@ -584,17 +609,22 @@ __s8 * get_property_string_data(property_table_item_t item)
 	return NULL;
 }
 
-__s32 get_property_int_data(property_table_item_t item)
+__s32 get_property_int_data(property_table_item_t item, __s32 * err)
 {
 	if(item == NULL)
-		return NULL;
+    {
+        *err = -1;
+		return 0;
+    }
 	if(item->data_type == DATA_TYPE_INT_4)
 	{
+        *err = 0;
 		__s32 * data = (__s32 *)(item->data);
 		printf("property->data = %d\n", *data);
 		return *data;
 	}
-	return NULL;
+    *err = -2;
+	return 0;
 }
 
 
@@ -624,7 +654,7 @@ __s32 get_bmp_array(property_table_item_t item, int array[], int num, int * err)
 	}else{
 		printf("data type error");
 		*err = -1;
-		return NULL;
+		return *err;
 	}
 }
 
@@ -656,7 +686,7 @@ __s32 get_pos_array(property_table_item_t item, int array[][2], int num, int * e
 	}else{
 		printf("data type error");
 		*err = -1;
-		return NULL;
+		return 0;
 	}
 }
 
@@ -681,18 +711,18 @@ __s8 * eLIBs_strtok(__s8 *str, const __s8 *delim)
         {
 			if(*str==*delim)
             {
-                *str = NULL;                    //若找到delim中感兴趣的字符,将该字符置为NULL
+                *str = 0;                    //若找到delim中感兴趣的字符,将该字符置为NULL
                 index = 1;                         //用来标记已出现感兴趣字符
                 break;
             }
         }
-        if(*str != NULL && flag == 1)
+        if(*str != 0 && flag == 1)
         {
             temp = str;                              //只记录下当前第一个非感兴趣字符的位置
             flag = 0;  
         }
             
-		if(*str != NULL && flag == 0 && index == 1)
+		if(*str != 0 && flag == 0 && index == 1)
         {
 			src = str;                                   //第二次出现非感兴趣字符的位置(之前一定出现过感兴趣字符)
             return temp;
